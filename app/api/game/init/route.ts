@@ -6,7 +6,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { fid, username, pfpUrl } = body;
 
+    console.log("[INIT] Request received:", { fid, username });
+
     if (!fid || !username) {
+      console.log("[INIT] Error: fid and username are required");
       return NextResponse.json(
         { error: "fid and username are required" },
         { status: 400 }
@@ -14,11 +17,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Inicializar usuario para hoy
-    await initUserDailyData(fid, username, pfpUrl);
+    const userData = await initUserDailyData(fid, username, pfpUrl);
+    console.log("[INIT] User data:", userData);
 
     // Obtener stats actualizados
     const stats = await getUserStats(fid);
     const playStatus = await canPlay(fid);
+
+    console.log("[INIT] Stats:", stats);
+    console.log("[INIT] Play status:", playStatus);
 
     return NextResponse.json({
       success: true,
@@ -27,7 +34,7 @@ export async function POST(request: NextRequest) {
       playReason: playStatus.reason,
     });
   } catch (error) {
-    console.error("Error initializing user:", error);
+    console.error("[INIT] Error initializing user:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

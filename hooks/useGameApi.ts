@@ -42,6 +42,7 @@ export function useGameApi() {
 
   // Inicializar usuario
   const initUser = useCallback(async (fid: number, username: string, pfpUrl?: string) => {
+    console.log("[useGameApi] initUser called with:", { fid, username });
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
@@ -52,6 +53,7 @@ export function useGameApi() {
       });
 
       const data = await response.json();
+      console.log("[useGameApi] initUser response:", data);
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to initialize user");
@@ -66,9 +68,11 @@ export function useGameApi() {
         playReason: data.playReason,
       }));
 
+      console.log("[useGameApi] initUser complete, stats:", data.stats);
       return data;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
+      console.error("[useGameApi] initUser error:", message);
       setState(prev => ({ ...prev, loading: false, error: message }));
       return null;
     }
