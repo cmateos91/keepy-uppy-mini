@@ -2,9 +2,13 @@
 
 import { MiniAppProvider } from "@/contexts/miniapp-context";
 import { env } from "@/lib/env";
+import { initPolyfills } from "@/lib/polyfills";
 import { MiniKitProvider } from "@coinbase/onchainkit/minikit";
 import dynamic from "next/dynamic";
 import { base } from "viem/chains";
+
+// Inicializar polyfills antes que nada
+initPolyfills();
 
 // Eruda solo en desarrollo
 const ErudaProvider = dynamic(
