@@ -109,6 +109,8 @@ export default function Game({ fid, username, pfpUrl }: GameProps) {
     lives,
     canPlayNow,
     loading: apiState.loading,
+    initialized: apiState.initialized,
+    error: apiState.error,
   });
 
   return (

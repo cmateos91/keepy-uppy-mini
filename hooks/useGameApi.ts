@@ -73,7 +73,7 @@ export function useGameApi() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       console.error("[useGameApi] initUser error:", message);
-      setState(prev => ({ ...prev, loading: false, error: message }));
+      setState(prev => ({ ...prev, loading: false, error: message, initialized: true }));
       return null;
     }
   }, []);
