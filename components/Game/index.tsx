@@ -3,12 +3,14 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Config, GameState } from '@/game';
 import { useGameApi } from '@/hooks/useGameApi';
+import { useLanguage } from '@/contexts/language-context';
 import GameCanvas from './GameCanvas';
 import StartScreen from './StartScreen';
 import GameOverScreen from './GameOverScreen';
 import ScoreDisplay from './ScoreDisplay';
 import Leaderboard from './Leaderboard';
 import BuyLivesModal from './BuyLivesModal';
+import LanguageSelector from './LanguageSelector';
 
 // Direccion donde se reciben pagos (configurable via env)
 const PAYMENT_RECEIVER = process.env.NEXT_PUBLIC_PAYMENT_RECEIVER || "0x0000000000000000000000000000000000000000";
@@ -20,6 +22,7 @@ interface GameProps {
 }
 
 export default function Game({ fid, username, pfpUrl }: GameProps) {
+  const { t } = useLanguage();
   const [gameState, setGameState] = useState<GameState>('start');
   const [score, setScore] = useState(0);
   const [isReady, setIsReady] = useState(false);
@@ -151,8 +154,13 @@ export default function Game({ fid, username, pfpUrl }: GameProps) {
       {/* Loading inicial */}
       {!isReady && (
         <div className="absolute inset-0 flex items-center justify-center bg-[#1a1a2e]">
-          <div className="text-white/60 text-lg">Cargando...</div>
+          <div className="text-white/60 text-lg">{t.loading}</div>
         </div>
+      )}
+
+      {/* Selector de idioma (visible en start y gameover) */}
+      {isReady && gameState !== 'playing' && (
+        <LanguageSelector />
       )}
 
       {/* Modal de Leaderboard */}

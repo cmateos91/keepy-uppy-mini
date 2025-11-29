@@ -1,6 +1,7 @@
 "use client";
 
 import { RankingEntry } from "@/hooks/useGameApi";
+import { useLanguage } from "@/contexts/language-context";
 
 interface LeaderboardProps {
   ranking: RankingEntry[];
@@ -15,13 +16,15 @@ export default function Leaderboard({
   userRank,
   onClose,
 }: LeaderboardProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
       <div className="w-full max-w-sm bg-[#1a1a2e] rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">Ranking Diario</h2>
+            <h2 className="text-xl font-bold text-white">{t.leaderboard.title}</h2>
             <button
               onClick={onClose}
               className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors"
@@ -31,7 +34,7 @@ export default function Leaderboard({
           </div>
           {userRank && userRank > 0 && (
             <p className="text-white/80 text-sm mt-1">
-              Tu posicion: #{userRank}
+              {t.leaderboard.yourRank}: #{userRank}
             </p>
           )}
         </div>
@@ -40,8 +43,7 @@ export default function Leaderboard({
         <div className="max-h-80 overflow-y-auto">
           {ranking.length === 0 ? (
             <div className="p-8 text-center text-gray-400">
-              <p>No hay puntuaciones todavia</p>
-              <p className="text-sm mt-1">Se el primero en jugar!</p>
+              <p>{t.leaderboard.empty}</p>
             </div>
           ) : (
             <ul className="divide-y divide-gray-700">
@@ -90,6 +92,9 @@ export default function Leaderboard({
                       }`}
                     >
                       @{entry.username}
+                      {entry.fid === userFid && (
+                        <span className="text-xs ml-1 text-yellow-400/70">{t.leaderboard.you}</span>
+                      )}
                     </p>
                   </div>
 
@@ -98,6 +103,7 @@ export default function Leaderboard({
                     <span className="font-bold text-lg text-white">
                       {entry.score}
                     </span>
+                    <span className="text-xs text-gray-400 ml-1">{t.leaderboard.points}</span>
                   </div>
                 </li>
               ))}
@@ -107,9 +113,12 @@ export default function Leaderboard({
 
         {/* Footer */}
         <div className="p-4 bg-gray-900/50">
-          <p className="text-xs text-gray-400 text-center">
-            El ranking se reinicia cada dia a las 00:00 UTC
-          </p>
+          <button
+            onClick={onClose}
+            className="w-full py-2 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+          >
+            {t.leaderboard.close}
+          </button>
         </div>
       </div>
     </div>

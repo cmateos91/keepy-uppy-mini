@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Config } from '@/game';
+import { useLanguage } from '@/contexts/language-context';
 
 interface ScoreDisplayProps {
   score: number;
@@ -9,6 +10,7 @@ interface ScoreDisplayProps {
 }
 
 export default function ScoreDisplay({ score, bestScore }: ScoreDisplayProps) {
+  const { t } = useLanguage();
   const scoreRef = useRef<HTMLDivElement>(null);
   const prevScoreRef = useRef(score);
 
@@ -36,7 +38,7 @@ export default function ScoreDisplay({ score, bestScore }: ScoreDisplayProps) {
         {score}
       </div>
       <div className="font-sans text-lg text-white/60 mt-1">
-        Mejor: {bestScore}
+        {t.score.best}: {bestScore}
       </div>
     </div>
   );

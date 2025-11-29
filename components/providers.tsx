@@ -1,6 +1,7 @@
 "use client";
 
 import { MiniAppProvider } from "@/contexts/miniapp-context";
+import { LanguageProvider } from "@/contexts/language-context";
 import { env } from "@/lib/env";
 import { initPolyfills } from "@/lib/polyfills";
 import { MiniKitProvider } from "@coinbase/onchainkit/minikit";
@@ -30,7 +31,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         notificationProxyUrl="/api/notification"
         chain={base}
       >
-        <MiniAppProvider>{children}</MiniAppProvider>
+        <LanguageProvider>
+          <MiniAppProvider>{children}</MiniAppProvider>
+        </LanguageProvider>
       </MiniKitProvider>
     </OnchainKitProvider>
   );

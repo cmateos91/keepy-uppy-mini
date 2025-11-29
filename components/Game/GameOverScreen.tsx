@@ -1,5 +1,7 @@
 "use client";
 
+import { useLanguage } from "@/contexts/language-context";
+
 interface GameOverScreenProps {
   score: number;
   bestScore: number;
@@ -21,31 +23,32 @@ export default function GameOverScreen({
   onShowLeaderboard,
   onBuyLives,
 }: GameOverScreenProps) {
+  const { t } = useLanguage();
   const isNewBest = score >= bestScore && score > 0;
 
   return (
     <div className="absolute inset-0 flex flex-col justify-center items-center bg-[#1a1a2e]/95 z-20 p-4">
       <h2 className="font-black text-white text-4xl mb-4">
-        Game Over
+        {t.gameOver.title}
       </h2>
 
       {isNewBest && (
         <p className="text-yellow-400 text-lg font-bold mb-2 animate-pulse">
-          Nuevo record!
+          {t.gameOver.newRecord}
         </p>
       )}
 
       <p className="text-white/70 text-lg mb-1">
-        Toques: <span className="text-white font-bold text-3xl">{score}</span>
+        {t.gameOver.score}: <span className="text-white font-bold text-3xl">{score}</span>
       </p>
 
       <p className="text-white/70 text-lg mb-2">
-        Mejor hoy: <span className="text-white font-bold">{bestScore}</span>
+        {t.gameOver.best}: <span className="text-white font-bold">{bestScore}</span>
       </p>
 
       {rank > 0 && (
         <p className="text-yellow-400 font-bold text-lg mb-4">
-          Posicion #{rank} en el ranking
+          {t.gameOver.rank} #{rank}
         </p>
       )}
 
@@ -53,11 +56,11 @@ export default function GameOverScreen({
       <div className="mb-6 text-center">
         {lives > 0 ? (
           <p className="text-white/70 text-sm">
-            Vidas restantes: <span className="text-green-400 font-bold">{lives}</span>
+            {t.start.livesCount.replace("{count}", lives.toString())}
           </p>
         ) : (
           <p className="text-orange-400 text-sm">
-            Sin vidas
+            {t.gameOver.noLivesLeft}
           </p>
         )}
       </div>
@@ -69,14 +72,14 @@ export default function GameOverScreen({
             onClick={onRestart}
             className="font-black text-xl py-4 px-8 border-none rounded-full bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white cursor-pointer shadow-lg shadow-[#667eea]/40 transition-transform duration-200 active:scale-95"
           >
-            REINTENTAR
+            {t.gameOver.playAgain.toUpperCase()}
           </button>
         ) : (
           <button
             onClick={onBuyLives}
             className="font-bold text-lg py-4 px-8 border-none rounded-full bg-gradient-to-br from-green-500 to-emerald-600 text-white cursor-pointer shadow-lg shadow-green-500/30 transition-transform duration-200 active:scale-95"
           >
-            COMPRAR 3 VIDAS - $0.20
+            {t.gameOver.buyLives.toUpperCase()} - $0.20
           </button>
         )}
 
@@ -84,7 +87,7 @@ export default function GameOverScreen({
           onClick={onShowLeaderboard}
           className="font-bold text-lg py-3 px-8 border-2 border-white/30 rounded-full bg-transparent text-white cursor-pointer transition-all duration-200 hover:bg-white/10 active:scale-95"
         >
-          VER RANKING
+          {t.gameOver.leaderboard.toUpperCase()}
         </button>
       </div>
     </div>

@@ -11,6 +11,7 @@ import {
 import { parseEther } from "viem";
 import { base } from "viem/chains";
 import type { LifecycleStatus } from "@coinbase/onchainkit/transaction";
+import { useLanguage } from "@/contexts/language-context";
 
 interface BuyLivesModalProps {
   onClose: () => void;
@@ -27,6 +28,7 @@ export default function BuyLivesModal({
   onSuccess,
   receiverAddress,
 }: BuyLivesModalProps) {
+  const { t } = useLanguage();
   const [status, setStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
 
@@ -64,7 +66,7 @@ export default function BuyLivesModal({
         {/* Header */}
         <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">Comprar Vidas</h2>
+            <h2 className="text-xl font-bold text-white">{t.buyLives.title}</h2>
             <button
               onClick={onClose}
               className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors"
@@ -80,11 +82,11 @@ export default function BuyLivesModal({
           {/* Oferta */}
           <div className="bg-gray-800/50 rounded-xl p-4 mb-6">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-400">Obtienes</span>
-              <span className="text-2xl font-bold text-white">3 Vidas</span>
+              <span className="text-gray-400">{t.buyLives.lives}</span>
+              <span className="text-2xl font-bold text-white">3</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-gray-400">Precio</span>
+              <span className="text-gray-400">{t.buyLives.price}</span>
               <div className="text-right">
                 <span className="text-xl font-bold text-green-400">{PRICE_ETH} ETH</span>
                 <p className="text-xs text-gray-500">~$0.20 USD</p>
@@ -94,8 +96,7 @@ export default function BuyLivesModal({
 
           {/* Info */}
           <div className="mb-6 text-sm text-gray-400">
-            <p className="mb-2">Cada vida te da una oportunidad para mejorar tu mejor puntuacion del dia.</p>
-            <p>Las vidas expiran a las 00:00 UTC.</p>
+            <p>{t.buyLives.description}</p>
           </div>
 
           {/* Transaction Button */}
@@ -106,7 +107,7 @@ export default function BuyLivesModal({
               onStatus={handleStatus}
             >
               <TransactionButton
-                text="Pagar con ETH"
+                text={t.buyLives.buyButton}
                 className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-xl transition-colors"
               />
               <TransactionStatus>
@@ -120,7 +121,7 @@ export default function BuyLivesModal({
           {status === "pending" && (
             <div className="text-center py-4">
               <div className="animate-spin w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full mx-auto mb-3"></div>
-              <p className="text-white">Procesando transaccion...</p>
+              <p className="text-white">{t.buyLives.processing}</p>
             </div>
           )}
 
@@ -132,8 +133,7 @@ export default function BuyLivesModal({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <p className="text-white font-bold">Vidas anadidas!</p>
-              <p className="text-sm text-gray-400 mt-1">Ya puedes seguir jugando</p>
+              <p className="text-white font-bold">{t.buyLives.success}</p>
             </div>
           )}
 
@@ -145,12 +145,12 @@ export default function BuyLivesModal({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </div>
-              <p className="text-white font-bold">Error en la transaccion</p>
+              <p className="text-white font-bold">{t.buyLives.error}</p>
               <button
                 onClick={() => setStatus("idle")}
                 className="mt-3 text-green-400 underline"
               >
-                Intentar de nuevo
+                {t.buyLives.cancel}
               </button>
             </div>
           )}
@@ -159,7 +159,7 @@ export default function BuyLivesModal({
         {/* Footer */}
         <div className="p-4 bg-gray-900/50">
           <p className="text-xs text-gray-500 text-center">
-            Transaccion en Base (L2). Gas minimo.
+            Base (L2) - Low gas fees
           </p>
         </div>
       </div>
