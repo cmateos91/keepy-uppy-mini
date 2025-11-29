@@ -94,12 +94,22 @@ export default function Game({ fid, username, pfpUrl }: GameProps) {
 
   // Datos del usuario
   const lives = apiState.stats?.lives || 0;
-  const freePlayAvailable = !apiState.stats?.freePlayUsed;
+  // Solo mostrar "free play available" si tenemos stats Y freePlayUsed es false
+  const freePlayAvailable = apiState.stats ? !apiState.stats.freePlayUsed : false;
   const todayBest = apiState.stats?.todayBest || 0;
   const rank = apiState.stats?.rank || -1;
 
-  // Determinar si puede jugar
-  const canPlayNow = freePlayAvailable || lives > 0;
+  // Determinar si puede jugar - solo si tenemos datos del servidor
+  const canPlayNow = apiState.stats ? (freePlayAvailable || lives > 0) : false;
+
+  console.log("[Game] State:", {
+    hasStats: !!apiState.stats,
+    freePlayUsed: apiState.stats?.freePlayUsed,
+    freePlayAvailable,
+    lives,
+    canPlayNow,
+    loading: apiState.loading,
+  });
 
   return (
     <div className="relative w-full h-full overflow-hidden bg-[#1a1a2e]">
@@ -130,7 +140,7 @@ export default function Game({ fid, username, pfpUrl }: GameProps) {
           rank={rank}
           todayBest={todayBest}
           onBuyLives={() => setShowBuyLives(true)}
-          loading={apiState.loading}
+          loading={apiState.loading || !apiState.initialized}
         />
       )}
 

@@ -63,7 +63,11 @@ export default function StartScreen({
 
       {/* Info de vidas */}
       <div className="mb-6 text-center">
-        {freePlayAvailable ? (
+        {loading ? (
+          <p className="text-white/50 text-sm">
+            {t.loading}
+          </p>
+        ) : freePlayAvailable ? (
           <p className="text-green-400 text-sm">
             {t.start.freePlayAvailable}
           </p>
