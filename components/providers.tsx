@@ -6,21 +6,29 @@ import { MiniKitProvider } from "@coinbase/onchainkit/minikit";
 import dynamic from "next/dynamic";
 import { base } from "viem/chains";
 
+// Eruda solo en desarrollo
 const ErudaProvider = dynamic(
   () => import("../components/Eruda").then((c) => c.ErudaProvider),
   { ssr: false }
 );
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  return (
-    <ErudaProvider>
-      <MiniKitProvider
-        projectId={env.NEXT_PUBLIC_MINIKIT_PROJECT_ID}
-        notificationProxyUrl="/api/notification"
-        chain={base}
-      >
-        <MiniAppProvider>{children}</MiniAppProvider>
-      </MiniKitProvider>
-    </ErudaProvider>
+  const isDev = env.NEXT_PUBLIC_APP_ENV === "development";
+
+  const content = (
+    <MiniKitProvider
+      projectId={env.NEXT_PUBLIC_MINIKIT_PROJECT_ID}
+      notificationProxyUrl="/api/notification"
+      chain={base}
+    >
+      <MiniAppProvider>{children}</MiniAppProvider>
+    </MiniKitProvider>
   );
+
+  // Solo usar Eruda en desarrollo
+  if (isDev) {
+    return <ErudaProvider>{content}</ErudaProvider>;
+  }
+
+  return content;
 }

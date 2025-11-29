@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect } from 'react';
 import { Ball, Physics, Renderer, Config } from '@/game';
 
 interface GameCanvasProps {
@@ -17,124 +17,51 @@ export default function GameCanvas({
   onReady
 }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const ballRef = useRef<Ball | null>(null);
-  const animationRef = useRef<number>(0);
-  const lastTimeRef = useRef<number>(0);
-  const groundYRef = useRef<number>(0);
-  const screenSizeRef = useRef({ width: 0, height: 0 });
+  const gameRef = useRef<{
+    ball: Ball | null;
+    animationId: number;
+    lastTime: number;
+    groundY: number;
+    screenWidth: number;
+    screenHeight: number;
+    isPlaying: boolean;
+  }>({
+    ball: null,
+    animationId: 0,
+    lastTime: 0,
+    groundY: 0,
+    screenWidth: 0,
+    screenHeight: 0,
+    isPlaying: false
+  });
 
-  // Calcular radio del balon segun pantalla
-  const calculateBallRadius = useCallback((width: number, height: number) => {
-    let radius = Math.min(width, height) * Config.ball.radiusRatio;
-    return Math.max(Config.ball.minRadius, Math.min(Config.ball.maxRadius, radius));
-  }, []);
+  // Refs para callbacks para evitar stale closures
+  const onScoreRef = useRef(onScore);
+  const onGameOverRef = useRef(onGameOver);
 
-  // Resize handler
-  const handleResize = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.scale(dpr, dpr);
-    }
-
-    screenSizeRef.current = { width: rect.width, height: rect.height };
-    groundYRef.current = rect.height - Config.screen.groundOffset;
-
-    const newRadius = calculateBallRadius(rect.width, rect.height);
-    if (ballRef.current) {
-      ballRef.current.radius = newRadius;
-    }
-
-    Renderer.setSize(rect.width, rect.height);
-  }, [calculateBallRadius]);
-
-  // Handle tap/click
-  const handleInteraction = useCallback((clientX: number, clientY: number) => {
-    if (!isPlaying || !ballRef.current || !canvasRef.current) return;
-
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
-
-    const hit = Physics.applyKick(ballRef.current, x, y);
-
-    if (hit) {
-      onScore();
-
-      // Vibracion haptica
-      if (navigator.vibrate) {
-        navigator.vibrate(Config.feedback.vibrationDuration);
-      }
-    }
-  }, [isPlaying, onScore]);
-
-  // Mouse/Touch handlers
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    handleInteraction(e.clientX, e.clientY);
-  }, [handleInteraction]);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    handleInteraction(touch.clientX, touch.clientY);
-  }, [handleInteraction]);
-
-  // Game loop
-  const gameLoop = useCallback((currentTime: number) => {
-    if (lastTimeRef.current === 0) {
-      lastTimeRef.current = currentTime;
-    }
-
-    let deltaTime = (currentTime - lastTimeRef.current) / 1000;
-    deltaTime = Math.min(deltaTime, Config.gameplay.maxDeltaTime);
-    lastTimeRef.current = currentTime;
-
-    const ball = ballRef.current;
-    if (!ball) return;
-
-    // Update physics solo si estamos jugando
-    if (isPlaying) {
-      const bounds = {
-        width: screenSizeRef.current.width,
-        height: groundYRef.current
-      };
-
-      const hitGround = Physics.update(ball, deltaTime, bounds);
-      ball.updateVisuals(deltaTime);
-
-      if (hitGround) {
-        onGameOver();
-      }
-    }
-
-    // Render siempre
-    Renderer.renderFrame(ball, groundYRef.current);
-
-    animationRef.current = requestAnimationFrame(gameLoop);
-  }, [isPlaying, onGameOver]);
-
-  // Reset ball para nuevo juego
   useEffect(() => {
-    if (isPlaying && ballRef.current) {
-      const { width, height } = screenSizeRef.current;
-      ballRef.current.reset(
-        width / 2,
-        height * Config.screen.ballStartYRatio
+    onScoreRef.current = onScore;
+    onGameOverRef.current = onGameOver;
+  }, [onScore, onGameOver]);
+
+  // Sincronizar isPlaying con ref
+  useEffect(() => {
+    const game = gameRef.current;
+    const wasPlaying = game.isPlaying;
+    game.isPlaying = isPlaying;
+
+    // Reset ball cuando empieza el juego
+    if (isPlaying && !wasPlaying && game.ball) {
+      game.ball.reset(
+        game.screenWidth / 2,
+        game.screenHeight * Config.screen.ballStartYRatio
       );
-      ballRef.current.vy = Config.ball.initialVelocityY;
-      lastTimeRef.current = 0;
+      game.ball.vy = Config.ball.initialVelocityY;
+      game.lastTime = 0;
     }
   }, [isPlaying]);
 
-  // Inicializacion
+  // Inicializacion unica
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -142,38 +69,129 @@ export default function GameCanvas({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Inicializar renderer
-    Renderer.init(ctx);
+    const game = gameRef.current;
 
-    // Setup inicial
+    // Resize handler
+    const handleResize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      game.screenWidth = rect.width;
+      game.screenHeight = rect.height;
+      game.groundY = rect.height - Config.screen.groundOffset;
+
+      // Calcular radio
+      let radius = Math.min(rect.width, rect.height) * Config.ball.radiusRatio;
+      radius = Math.max(Config.ball.minRadius, Math.min(Config.ball.maxRadius, radius));
+
+      if (game.ball) {
+        game.ball.radius = radius;
+      }
+
+      Renderer.setSize(rect.width, rect.height);
+    };
+
+    // Inicializar
+    Renderer.init(ctx);
     handleResize();
 
     // Crear balon
-    const { width, height } = screenSizeRef.current;
-    const radius = calculateBallRadius(width, height);
-    ballRef.current = new Ball(width / 2, height / 2, radius);
+    let radius = Math.min(game.screenWidth, game.screenHeight) * Config.ball.radiusRatio;
+    radius = Math.max(Config.ball.minRadius, Math.min(Config.ball.maxRadius, radius));
+    game.ball = new Ball(game.screenWidth / 2, game.screenHeight / 2, radius);
 
-    // Notificar que esta listo
-    onReady();
+    // Game loop
+    const gameLoop = (currentTime: number) => {
+      if (game.lastTime === 0) {
+        game.lastTime = currentTime;
+      }
 
-    // Listener de resize
+      let deltaTime = (currentTime - game.lastTime) / 1000;
+      deltaTime = Math.min(deltaTime, Config.gameplay.maxDeltaTime);
+      game.lastTime = currentTime;
+
+      if (!game.ball) {
+        game.animationId = requestAnimationFrame(gameLoop);
+        return;
+      }
+
+      // Update physics solo si estamos jugando
+      if (game.isPlaying) {
+        const bounds = {
+          width: game.screenWidth,
+          height: game.groundY
+        };
+
+        const hitGround = Physics.update(game.ball, deltaTime, bounds);
+        game.ball.updateVisuals(deltaTime);
+
+        if (hitGround) {
+          onGameOverRef.current();
+        }
+      }
+
+      // Render siempre
+      Renderer.renderFrame(game.ball, game.groundY);
+
+      game.animationId = requestAnimationFrame(gameLoop);
+    };
+
+    // Input handlers
+    const handleInteraction = (clientX: number, clientY: number) => {
+      if (!game.isPlaying || !game.ball) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+
+      const hit = Physics.applyKick(game.ball, x, y);
+
+      if (hit) {
+        onScoreRef.current();
+        if (navigator.vibrate) {
+          navigator.vibrate(Config.feedback.vibrationDuration);
+        }
+      }
+    };
+
+    const handleMouseDown = (e: MouseEvent) => {
+      handleInteraction(e.clientX, e.clientY);
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      handleInteraction(touch.clientX, touch.clientY);
+    };
+
+    // Event listeners
     window.addEventListener('resize', handleResize);
+    canvas.addEventListener('mousedown', handleMouseDown);
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
 
-    // Iniciar game loop
-    animationRef.current = requestAnimationFrame(gameLoop);
+    // Iniciar loop
+    game.animationId = requestAnimationFrame(gameLoop);
+
+    // Notificar ready
+    onReady();
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(animationRef.current);
+      canvas.removeEventListener('mousedown', handleMouseDown);
+      canvas.removeEventListener('touchstart', handleTouchStart);
+      cancelAnimationFrame(game.animationId);
     };
-  }, [handleResize, calculateBallRadius, gameLoop, onReady]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Solo ejecutar una vez
 
   return (
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full touch-none select-none"
-      onMouseDown={handleMouseDown}
-      onTouchStart={handleTouchStart}
     />
   );
 }

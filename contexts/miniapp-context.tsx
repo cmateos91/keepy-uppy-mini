@@ -28,8 +28,10 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
         return result;
       }
       return null;
-    } catch (error) {
-      console.error("[error] adding frame", error);
+    } catch {
+      // Error esperado cuando no estamos dentro de Base App
+      // Solo mostrar en desarrollo si es necesario debug
+      // console.debug("[minikit] addFrame not available outside Base App");
       return null;
     }
   }, [addFrame]);
