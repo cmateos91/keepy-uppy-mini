@@ -4,6 +4,7 @@ import { MiniAppProvider } from "@/contexts/miniapp-context";
 import { env } from "@/lib/env";
 import { initPolyfills } from "@/lib/polyfills";
 import { MiniKitProvider } from "@coinbase/onchainkit/minikit";
+import { OnchainKitProvider } from "@coinbase/onchainkit";
 import dynamic from "next/dynamic";
 import { base } from "viem/chains";
 
@@ -20,13 +21,18 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   const isDev = env.NEXT_PUBLIC_APP_ENV === "development";
 
   const content = (
-    <MiniKitProvider
-      projectId={env.NEXT_PUBLIC_MINIKIT_PROJECT_ID}
-      notificationProxyUrl="/api/notification"
+    <OnchainKitProvider
+      apiKey={env.NEXT_PUBLIC_ONCHAINKIT_API_KEY}
       chain={base}
     >
-      <MiniAppProvider>{children}</MiniAppProvider>
-    </MiniKitProvider>
+      <MiniKitProvider
+        projectId={env.NEXT_PUBLIC_MINIKIT_PROJECT_ID}
+        notificationProxyUrl="/api/notification"
+        chain={base}
+      >
+        <MiniAppProvider>{children}</MiniAppProvider>
+      </MiniKitProvider>
+    </OnchainKitProvider>
   );
 
   // Solo usar Eruda en desarrollo

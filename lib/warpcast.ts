@@ -43,7 +43,7 @@ export async function getFarcasterManifest() {
       primaryCategory: "games",
       tags: ["game", "arcade", "football", "keepy-uppy", "casual"],
       tagline: "Cuantos toques puedes hacer?",
-      ogTitle: "Keepy Uppy - Juego de Habilidad",
+      ogTitle: "Keepy Uppy",
       ogDescription: "Manten el balon en el aire. Juego de habilidad y reflejos para Base App.",
       screenshotUrls: [
         `${appUrl}/images/screenshot1.png`,
