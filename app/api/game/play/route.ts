@@ -1,16 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { consumeLife, canPlay, getUserStats } from "@/lib/kv";
+import { consumeLife, canPlay, getUserStats, initUserDailyData, getUserDailyData } from "@/lib/kv";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { fid } = body;
+    const { fid, username, pfpUrl } = body;
 
     if (!fid) {
       return NextResponse.json(
         { error: "fid is required" },
         { status: 400 }
       );
+    }
+
+    // Asegurarse de que el usuario existe (inicializar si no)
+    let user = await getUserDailyData(fid);
+    if (!user) {
+      // Inicializar usuario si no existe
+      user = await initUserDailyData(fid, username || "Player", pfpUrl);
     }
 
     // Verificar si puede jugar

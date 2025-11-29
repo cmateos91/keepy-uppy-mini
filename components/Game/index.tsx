@@ -41,8 +41,8 @@ export default function Game({ fid, username, pfpUrl }: GameProps) {
 
   // Manejar inicio de partida
   const handleStart = useCallback(async () => {
-    // Verificar si puede jugar
-    const canStartPlay = await startPlay(fid);
+    // Verificar si puede jugar (tambien inicializa usuario si no existe)
+    const canStartPlay = await startPlay(fid, username, pfpUrl);
 
     if (!canStartPlay) {
       // No tiene vidas, mostrar modal de compra
@@ -53,7 +53,7 @@ export default function Game({ fid, username, pfpUrl }: GameProps) {
     // Puede jugar, iniciar
     setScore(0);
     setGameState('playing');
-  }, [fid, startPlay]);
+  }, [fid, username, pfpUrl, startPlay]);
 
   // Manejar puntuacion
   const handleScore = useCallback(() => {

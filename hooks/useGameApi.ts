@@ -75,14 +75,14 @@ export function useGameApi() {
   }, []);
 
   // Iniciar partida (consume vida o free play)
-  const startPlay = useCallback(async (fid: number) => {
+  const startPlay = useCallback(async (fid: number, username?: string, pfpUrl?: string) => {
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
       const response = await fetch("/api/game/play", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fid }),
+        body: JSON.stringify({ fid, username, pfpUrl }),
       });
 
       const data = await response.json();
