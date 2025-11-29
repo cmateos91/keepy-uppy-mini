@@ -76,6 +76,7 @@ export function useGameApi() {
 
   // Iniciar partida (consume vida o free play)
   const startPlay = useCallback(async (fid: number, username?: string, pfpUrl?: string) => {
+    console.log("[useGameApi] startPlay called with:", { fid, username });
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
@@ -86,6 +87,7 @@ export function useGameApi() {
       });
 
       const data = await response.json();
+      console.log("[useGameApi] startPlay response:", data);
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to start play");
@@ -99,9 +101,11 @@ export function useGameApi() {
         playReason: data.reason || "",
       }));
 
+      console.log("[useGameApi] startPlay returning:", data.success);
       return data.success;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
+      console.error("[useGameApi] startPlay error:", message);
       setState(prev => ({ ...prev, loading: false, error: message }));
       return false;
     }
